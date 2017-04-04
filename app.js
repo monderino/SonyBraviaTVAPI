@@ -18,8 +18,8 @@ var routes = require("./routes/routes.js")(app);
 
 // HTTPS
 var secureServer = https.createServer({
-    key: fs.readFileSync('keys/private.key'),
-    cert: fs.readFileSync('keys/certificate.pem')
+    key: fs.readFileSync('keys/41254616-sbbraspian.ddns.net.key'),
+    cert: fs.readFileSync('keys/41254616-sbbraspian.ddns.net.cert')
 }, app)
     .listen(HTTPS_PORT, function () {
         console.log('Secure Server listening on port ' + HTTPS_PORT);

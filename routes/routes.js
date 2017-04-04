@@ -1,69 +1,63 @@
 var appRouter = function (app) {
+
     // We need this to build our post string
     var querystring = require('querystring');
     var http = require('http');
     var fs = require('fs');
+    var command = require('../SonyRemoteCommands/Command.js')
     const sonyPreSharedKey = '9498'
 
+    function ExecuteCommand(request, response) {
+        if (request.method == 'POST') {
+            var body = '';
+
+            request.on('data', function (data) {
+                body += data;
+                // Too much POST data, kill the connection!
+                // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+                if (body.length > 1e6)
+                    request.connection.destroy();
+            });
+
+            request.on('end', function () {
+                let commandExist = true;
+                // let cmd = new Command();
+                switch (body) {
+                    case "channelUp":
+                    // todo get dictionary from command 
+                    // console.log(command.dict.[body].Value);
+                        // PostCode(cmd.getCommand(body));
+
+                        break;
+                    default:
+                        console.log("dont find ", body);
+                        commandExist = false;
+                        break;
+                }
+                if (commandExist) {
+                    body += " ok";
+                } else {
+                    body += " fehler";
+                }
+            });
+        }
+    }
 
     app.get("/", function (req, res) {
         res.send("Sony TV API");
     });
 
 
-    app.post("/off", function (req, res) {
-        PostCode("AAAAAQAAAAEAAAAvAw==")
-        return res.send(req.body);
-    });
-    // app.post("/on", function (req, res) {
-    //     PostCode("AAAAAQAAAAEAAAAvAw==")
-    //     return res.send(req.body);
-    // });
-    app.post("/channelUp", function (req, res) {
-        PostCode("AAAAAQAAAAEAAAAQAw==")
-        return res.send(req.body);
-    });
-    app.post("/channelDown", function (req, res) {
-        PostCode("AAAAAQAAAAEAAAARAw==")
-        return res.send(req.body);
-    });
-    app.post("/volUp", function (req, res) {
-        PostCode("AAAAAQAAAAEAAAASAw==")
-        return res.send(req.body);
-    });
-    app.post("/volDown", function (req, res) {
-        PostCode("AAAAAQAAAAEAAAATAw==")
-        return res.send(req.body);
-    });
-    app.post("/mute", function (req, res) {
-        PostCode("AAAAAQAAAAEAAAAUAw==")
+
+    app.post("/", function (req, res) {
+        ExecuteCommand(req, res);
+
         return res.send(req.body);
     });
 
-
-
-    app.post("/epg", function (req, res) {
-        // if(!req.body.username || !req.body.password || !req.body.twitter) {
-        //     return res.send({"status": "error", "message": "missing a parameter"});
-        // } else {
-        //     return res.send(req.body);
-        // }
-
-        PostCode("AAAAAgAAAKQAAABbAw==")
-        return res.send(req.body);
-    });
 
 
     function PostCode(codestring) {
-        // Build the post string from an object
-        //   var post_data = querystring.stringify({
-        //       'compilation_level' : 'ADVANCED_OPTIMIZATIONS',
-        //       'output_format': 'json',
-        //       'output_info': 'compiled_code',
-        //         'warning_level' : 'QUIET',
-        //         'js_code' : codestring
-        //   });
-
         var post_data = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
             "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\"> " +
             "<s:Body><u:X_SendIRCC xmlns:u=\"urn:schemas-sony-com:service:IRCC:1\">" +
@@ -85,7 +79,7 @@ var appRouter = function (app) {
         var post_req = http.request(post_options, function (res) {
             res.setEncoding('utf8');
             res.on('data', function (chunk) {
-                console.log('Response: ' + chunk);
+                // console.log('Response: ' + chunk);
             });
         });
 
@@ -95,27 +89,9 @@ var appRouter = function (app) {
 
     }
 
-    // // This is an async file read
-    // fs.readFile('LinkedList.js', 'utf-8', function (err, data) {
-    //   if (err) {
-    //     // If this were just a small part of the application, you would
-    //     // want to handle this differently, maybe throwing an exception
-    //     // for the caller to handle. Since the file is absolutely essential
-    //     // to the program's functionality, we're going to exit with a fatal
-    //     // error instead.
-    //     console.log("FATAL An error occurred trying to read in the file: " + err);
-    //     process.exit(-2);
-    //   }
-    //   // Make sure there's data before we post it
-    //   if(data) {
-    //     PostCode(data);
-    //   }
-    //   else {
-    //     console.log("No data to post");
-    //     process.exit(-1);
-    //   }
-    // });
+
 
 }
 
 module.exports = appRouter;
+
